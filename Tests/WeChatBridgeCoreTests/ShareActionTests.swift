@@ -16,7 +16,7 @@ final class ShareActionTests: XCTestCase {
     }
 
     func testOnlyForwardingActionsNameATargetApp() {
-        XCTAssertEqual(ShareAction.allCases.count, 9)
+        XCTAssertEqual(ShareAction.allCases.count, 10)
         XCTAssertEqual(ShareAction.codex.targetBundleIdentifier, "com.openai.codex")
         XCTAssertEqual(ShareAction.claude.targetBundleIdentifier, "com.anthropic.claudefordesktop")
         XCTAssertEqual(ShareAction.doubao.targetBundleIdentifier, "com.bot.pc.doubao")
@@ -25,6 +25,9 @@ final class ShareActionTests: XCTestCase {
         XCTAssertEqual(ShareAction.weSight.targetBundleIdentifier, "ai.wesight.app")
         XCTAssertEqual(ShareAction.obsidian.targetBundleIdentifier, "md.obsidian")
         XCTAssertNil(ShareAction.clipboard.targetBundleIdentifier)
+        // Hermes is a webhook, not an app: nothing to activate and no bundle
+        // identifier to name.
+        XCTAssertNil(ShareAction.hermes.targetBundleIdentifier)
         // 「发送到自定义」 names no app of its own: the one it goes to is chosen
         // in the share panel and travels in the intent.
         XCTAssertNil(ShareAction.custom.targetBundleIdentifier)
@@ -63,7 +66,7 @@ final class ShareActionTests: XCTestCase {
         XCTAssertFalse(ShareAction.clipboard.needsIntent)
         for action in [
             ShareAction.codex, .claude, .doubao, .qwen, .workBuddy,
-            .weSight, .obsidian, .custom,
+            .weSight, .obsidian, .hermes, .custom,
         ] {
             XCTAssertTrue(action.needsIntent, "\(action)")
         }

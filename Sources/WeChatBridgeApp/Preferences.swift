@@ -30,6 +30,7 @@ final class Preferences: ObservableObject {
         static let pendingScene = "com.xiangming.wechatbridge.pendingScene.v1"
         static let obsidianVaultPath = "com.xiangming.wechatbridge.obsidianVaultPath"
         static let obsidianSubfolder = "com.xiangming.wechatbridge.obsidianSubfolder"
+        static let hermesWebhookURL = "com.xiangming.wechatbridge.hermesWebhookURL"
     }
 
     /// A week: long enough that last Friday's chat export is still there on
@@ -65,6 +66,7 @@ final class Preferences: ObservableObject {
             .flatMap { try? JSONDecoder().decode(PendingSceneSelection.self, from: $0) }
         obsidianVaultPath = defaults.string(forKey: Key.obsidianVaultPath)
         obsidianSubfolder = defaults.string(forKey: Key.obsidianSubfolder) ?? "微信流"
+        hermesWebhookURL = defaults.string(forKey: Key.hermesWebhookURL)
     }
 
     /// Set only by finishing the guide. Closing its window half way through is
@@ -133,6 +135,15 @@ final class Preferences: ObservableObject {
 
     @Published var obsidianSubfolder: String {
         didSet { defaults.set(obsidianSubfolder, forKey: Key.obsidianSubfolder) }
+    }
+
+    /// The Hermes webhook URL, exactly as pasted. Kept raw here — validation
+    /// happens at the point of use (`HermesDelivery.validatedURL`) and in the
+    /// settings pane, so a value that becomes invalid later (a route renamed,
+    /// a port changed) still shows up for the user to fix rather than being
+    /// silently dropped.
+    @Published var hermesWebhookURL: String? {
+        didSet { defaults.set(hermesWebhookURL, forKey: Key.hermesWebhookURL) }
     }
 
     /// Global scene shortcuts choose for the next share, not forever. A stale

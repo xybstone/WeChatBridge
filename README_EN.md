@@ -23,7 +23,7 @@
 
 WeChat 4.1.13 for macOS introduced merged forwarding to third-party apps. It exports selected messages as a ZIP containing an ordered text transcript, images, and videos—a useful input format for AI agents and local knowledge bases.
 
-The macOS “forward to other apps” menu only lists apps that ship a Share Extension. WeChatBridge adds that missing layer and routes one export to Codex, Claude, Doubao, QwenWork, WorkBuddy, WeSight, Obsidian, the clipboard, or another app you choose.
+The macOS “forward to other apps” menu only lists apps that ship a Share Extension. WeChatBridge adds that missing layer and routes one export to Codex, Claude, Doubao, QwenWork, WorkBuddy, WeSight, Obsidian, a local Hermes Agent webhook, the clipboard, or another app you choose.
 
 ```mermaid
 flowchart LR
@@ -39,9 +39,10 @@ flowchart LR
 
 | Capability | Experience |
 | --- | --- |
-| Nine native entries | Pick a destination in WeChat without opening the main app |
+| Ten native entries | Pick a destination in WeChat without opening the main app |
 | AI agent hand-off | Activate the target app, attach a scene prompt, and paste the archive |
 | Obsidian archiving | Create a Markdown note, retain the original ZIP, and organize it by chat name |
+| Hermes Agent delivery | Sign the archive path and POST it to a local Hermes webhook to trigger one agent run |
 | Custom destinations | Add any macOS app; terminal-style apps can receive file paths only |
 | Scenes and skills | Keep prompts per conversation and manage agent-compatible `SKILL.md` packages |
 | Local history | Inspect delivery state, retry, copy, reveal files, and clean old batches |
@@ -59,6 +60,7 @@ flowchart LR
 | Send to WorkBuddy | Activate WorkBuddy and paste the conversation archive |
 | Send to WeSight | Activate WeSight and paste the conversation archive |
 | Save to Obsidian | Create a Markdown note and preserve the original attachment |
+| Send to Hermes | Deliver the batch identity and archive path, signed, to a local Hermes webhook |
 | Copy to Clipboard | Keep the files ready for a manual paste |
 | Send to Custom | Route the batch to an app from your own list |
 
