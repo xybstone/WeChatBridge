@@ -23,6 +23,8 @@ public enum ShareAction: String, Codable, Sendable, CaseIterable {
     case weSight
     /// Write a Markdown note and its source archive into the configured vault.
     case obsidian
+    /// POST the durable archive's path to a local Hermes Agent webhook.
+    case hermes
     /// Put the files on the clipboard and stop there.
     case clipboard
     /// Ask which app, every time. The entry itself names no destination and
@@ -76,6 +78,9 @@ public enum ShareAction: String, Codable, Sendable, CaseIterable {
         case .workBuddy: return "com.tencent.workbuddy.mac"
         case .weSight: return "ai.wesight.app"
         case .obsidian: return "md.obsidian"
+        // Hermes is a webhook, not an app: there is nothing to activate. The
+        // delivery is a loopback HTTP POST from the main app.
+        case .hermes: return nil
         // `.custom` has no fixed destination and no destination in its intent
         // either. `ActionRunner` resolves one from the user's own list, or takes
         // the one a 发给 ▸ menu inside WeChatBridge named.
@@ -92,7 +97,7 @@ public enum ShareAction: String, Codable, Sendable, CaseIterable {
     public var needsIntent: Bool {
         switch self {
         case .clipboard: return false
-        case .codex, .claude, .doubao, .qwen, .workBuddy, .weSight, .obsidian, .custom: return true
+        case .codex, .claude, .doubao, .qwen, .workBuddy, .weSight, .obsidian, .hermes, .custom: return true
         }
     }
 
@@ -108,6 +113,7 @@ public enum ShareAction: String, Codable, Sendable, CaseIterable {
         case .workBuddy: return "WorkBuddy"
         case .weSight: return L10n.text("WeSight")
         case .obsidian: return L10n.text("Obsidian")
+        case .hermes: return L10n.text("Hermes")
         case .clipboard: return L10n.text("剪贴板")
         // Only ever reached when the chosen target is missing — a failure
         // message has to name something, and this build has nothing better.
@@ -128,6 +134,7 @@ public enum ShareAction: String, Codable, Sendable, CaseIterable {
         case .workBuddy: return L10n.text("发给 WorkBuddy")
         case .weSight: return L10n.text("发给 WeSight")
         case .obsidian: return L10n.text("沉淀到 Obsidian")
+        case .hermes: return L10n.text("发给 Hermes")
         case .clipboard: return L10n.text("复制到剪贴板")
         case .custom: return L10n.text("发送到自定义")
         }
@@ -146,6 +153,7 @@ public enum ShareAction: String, Codable, Sendable, CaseIterable {
         case .workBuddy: return "ShareWorkBuddy"
         case .weSight: return "ShareWeSight"
         case .obsidian: return "ShareObsidian"
+        case .hermes: return "ShareHermes"
         case .clipboard: return "ShareClipboard"
         case .custom: return "ShareCustom"
         }

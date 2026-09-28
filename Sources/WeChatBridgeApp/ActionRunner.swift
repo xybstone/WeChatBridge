@@ -79,7 +79,7 @@ final class ActionRunner {
             // Nothing is shown: the share sheet said 「已复制到剪贴板」 a moment
             // ago and is still on screen. A second capsule saying it again is
             // WeChatBridge talking over the system.
-        case .codex, .claude, .doubao, .qwen, .workBuddy, .weSight, .obsidian, .custom:
+        case .codex, .claude, .doubao, .qwen, .workBuddy, .weSight, .obsidian, .hermes, .custom:
             // Shares and WeChat captures share the same clipboard queue.
             //
             // Read here rather than where the panel opens. This forward may wait
@@ -141,6 +141,10 @@ final class ActionRunner {
         )
         if arrival.action == .obsidian {
             await deliverToObsidian(arrival, context: context)
+            return
+        }
+        if arrival.action == .hermes {
+            await deliverToHermes(arrival, context: context)
             return
         }
         guard arrival.action == .custom, arrival.target == nil else {
@@ -245,6 +249,60 @@ final class ActionRunner {
                 arrival,
                 message: (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
             )
+        }
+    }
+
+    /// Hermes is a webhook, not an app: nothing is activated and nothing is
+    /// pasted. The event names the durable archive's path; Hermes reads the
+    /// file itself, with its own tools, in the run the event triggers.
+    ///
+    /// The scene machinery is skipped on purpose — its prompts are written for
+    /// a chat app's input box, and the webhook route owns its own prompt.
+    private func deliverToHermes(
+        _ arrival: ArrivedBatch,
+        context: SceneCoordinator.Selection
+    ) async {
+        func unavailable(_ message: String) {
+            fallBack(arrival, message: message, action: ToastPresenter.Action(title: L10n.text("打开设置")) { [weak self] in
+                self?.openEntries?()
+            })
+        }
+        switch HermesDelivery.validatedURL(preferences.hermesWebhookURL) {
+        case .failure(let failure):
+            unavailable(failure.localizedDescription)
+            return
+        case .success(let url):
+            guard let secret = HermesSecretStore.read() else {
+                unavailable(HermesDelivery.Failure.missingSecret.localizedDescription)
+                return
+            }
+            // One event per batch, not per URL: a multi-file share is one chat
+            // export, and the batch directory is what stays durable.
+            guard let batchID = model.batchIDs(for: arrival.urls).first,
+                  let batch = model.batch(id: batchID),
+                  let archive = batch.items.first(where: { $0.url.pathExtension.lowercased() == "zip" })
+                    ?? batch.items.first
+            else {
+                unavailable(HermesDelivery.Failure.notConfigured.localizedDescription)
+                return
+            }
+            let event = HermesDelivery.Event(
+                batchID: batch.id,
+                createdAt: batch.createdAt,
+                chatName: context.groupName ?? batch.chatName,
+                archivePath: archive.url.path,
+                archiveBytes: archive.byteCount
+            )
+            do {
+                _ = try await HermesDelivery.deliver(event, to: url, secret: secret)
+                model.recordDelivery(urls: arrival.urls, action: .hermes)
+            } catch {
+                // The archive is untouched and the history says why the event
+                // never arrived — 发给 Hermes on the batch's row is the retry.
+                fallBack(arrival, message: (error as? HermesDelivery.Failure)?.localizedDescription
+                    ?? (error as? LocalizedError)?.errorDescription
+                    ?? error.localizedDescription)
+            }
         }
     }
 

@@ -18,6 +18,8 @@ struct ShareEntryList: View {
     /// Settings uses terse state; onboarding keeps the explanatory copy.
     var compactDetails = false
     var obsidianVaultPath: String?
+    /// Raw, as pasted; the row validates through `HermesDelivery.validatedURL`.
+    var hermesWebhookURL: String?
     var customTargetCount = 0
     var configure: ((ShareAction) -> Void)?
 
@@ -70,8 +72,12 @@ struct ShareEntryList: View {
             HStack(spacing: Space.s) {
                 if compactDetails,
                    let configure,
-                   action == .obsidian || action == .custom {
-                    Button(action == .obsidian ? L10n.text("设置…") : L10n.text("管理…")) {
+                   action == .obsidian || action == .custom || action == .hermes {
+                    Button(
+                        action == .obsidian
+                            ? L10n.text("设置…")
+                            : (action == .hermes ? L10n.text("设置…") : L10n.text("管理…"))
+                    ) {
                         configure(action)
                     }
                     .buttonStyle(SettingsActionButtonStyle())
@@ -162,7 +168,7 @@ struct ShareEntryList: View {
         case .workBuddy: file = "06-workbuddy.png"
         case .weSight: file = "07-wesight.png"
         case .obsidian: file = "05-obsidian.png"
-        case .clipboard, .custom: return nil
+        case .hermes, .clipboard, .custom: return nil
         }
         guard let url = Bundle.main.url(
             forResource: file,
@@ -178,6 +184,7 @@ struct ShareEntryList: View {
         switch action {
         case .codex, .claude, .doubao, .qwen, .workBuddy, .weSight: "paperplane"
         case .obsidian: "book.closed"
+        case .hermes: "point.3.connected.trianglepath.dotted"
         case .clipboard: "doc.on.clipboard"
         case .custom: "paperplane.circle"
         }
@@ -197,6 +204,12 @@ struct ShareEntryList: View {
                 return obsidianVaultPath.map {
                     URL(fileURLWithPath: $0, isDirectory: true).lastPathComponent
                 } ?? L10n.text("未选择知识库")
+            case .hermes:
+                switch HermesDelivery.validatedURL(hermesWebhookURL) {
+                case .success: return L10n.text("已配置")
+                case .failure(.notConfigured): return L10n.text("未配置")
+                case .failure: return L10n.text("地址无效")
+                }
             case .clipboard:
                 return L10n.text("只复制，不自动粘贴")
             case .custom:
@@ -214,6 +227,7 @@ struct ShareEntryList: View {
         case .workBuddy: return L10n.text("激活 WorkBuddy 并直接粘贴到输入框。")
         case .weSight: return L10n.text("激活 WeSight 并直接粘贴到输入框。")
         case .obsidian: return L10n.text("把聊天记录转成 Markdown，写入选定的 Obsidian 知识库。")
+        case .hermes: return L10n.text("把聊天归档投递给本机 Hermes Agent 的 Webhook，由它接管整理。")
         case .clipboard: return L10n.text("只放进剪贴板，去哪儿按 ⌘V 由你决定。")
         case .custom: return L10n.text("转发时从你自己的清单里挑一个 App，激活它并粘贴。")
         }
@@ -228,6 +242,9 @@ struct ShareEntryList: View {
             } ?? true
         case .obsidian:
             return obsidianVaultPath == nil
+        case .hermes:
+            if case .success = HermesDelivery.validatedURL(hermesWebhookURL) { return false }
+            return true
         case .custom:
             return customTargetCount == 0
         case .clipboard:

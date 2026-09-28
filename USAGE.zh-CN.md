@@ -19,7 +19,7 @@
 
 ## 转发入口
 
-九个入口覆盖主流 Agent、笔记软件和剪贴板，随时可以用开关收窄或放开。
+十个入口覆盖主流 Agent、笔记软件和剪贴板，随时可以用开关收窄或放开。
 
 ![入口设置页](Resources/Screenshots/usage-entries.png)
 
@@ -31,6 +31,7 @@
 
 - 发给 Codex / Claude / 豆包 / 千问办公 / WorkBuddy / WeSight：激活目标应用并粘贴聊天归档。
 - 沉淀到 Obsidian：生成 Markdown 笔记，同时保存微信导出的原始压缩包。
+- 发给 Hermes：把批次信息与归档路径 HMAC 签名后投递给本机 Hermes Webhook，聊天内容不会离开这台 Mac。
 - 复制到剪贴板：只写文件，不自动粘贴，由你自己决定贴到哪里。
 - 发送到自定义：添加任意 macOS 应用，终端类应用可以只接收文件路径。
 
@@ -77,6 +78,12 @@
 附件按微信聊天界面的样式渲染，图片、文件、链接都能直接看出原来长什么样，翻笔记的时候不用再去对照原始压缩包。
 
 ![附件展示](Resources/Screenshots/usage-obsidian-attachments.png)
+
+## 发给 Hermes
+
+选择「发给 Hermes」时，微信流不粘贴到聊天应用，而是把批次投递给本机的 [Hermes Agent](https://hermes-agent.nousresearch.com/) Webhook。在「入口」页配置一次：粘贴指向本机的 Webhook 地址（例如 `http://127.0.0.1:8644/webhooks/wechat`）和路由的 HMAC 密钥。密钥只保存在钥匙串里，不会写入文件或日志。
+
+每次转发发送一个签名的 JSON 事件——批次编号、创建时间、聊天名和归档在本机的路径——使用 Hermes 的 Webhook 签名方案。原始 ZIP 始终保留在共享收件箱里，投递失败后可以在「记录」页重试。聊天内容不会离开这台 Mac，也不会自动回复微信。
 
 ## 记录
 

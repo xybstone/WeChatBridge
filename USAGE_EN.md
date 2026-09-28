@@ -19,7 +19,7 @@ These entries come from WeChatBridge and sit in the same menu as AirDrop, Messag
 
 ## Destinations
 
-Nine entries cover mainstream agents, note-taking apps, and the clipboard. You can narrow or widen the list at any time.
+Ten entries cover mainstream agents, note-taking apps, and the clipboard. You can narrow or widen the list at any time.
 
 ![Entries settings](Resources/Screenshots/usage-entries.png)
 
@@ -31,6 +31,7 @@ Supported agents:
 
 - Send to Codex / Claude / Doubao / QwenWork / WorkBuddy / WeSight: activate the target app and paste the archive.
 - Save to Obsidian: create a Markdown note and keep the original WeChat export.
+- Send to Hermes: deliver the batch identity and the archive's local path, HMAC-signed, to a loopback Hermes webhook; the chat content never leaves this Mac.
 - Copy to Clipboard: write the files without pasting, so you decide where they land.
 - Send to Custom: add any macOS app; terminal-style apps can receive file paths only.
 
@@ -77,6 +78,12 @@ Forward with the “Article extraction” skill installed, and the agent fetches
 Attachments are rendered the way they appear in WeChat, so images, files, and links keep their original shape and you can read the note without opening the original ZIP.
 
 ![Attachment rendering](Resources/Screenshots/usage-obsidian-attachments.png)
+
+## Sending to Hermes
+
+“Send to Hermes” delivers the batch to a local [Hermes Agent](https://hermes-agent.nousresearch.com/) webhook instead of pasting into a chat app. Configure it once in Entries: paste the loopback webhook URL (e.g. `http://127.0.0.1:8644/webhooks/wechat`) and the route's HMAC secret. The secret is stored only in the Keychain, never in files or logs.
+
+Each share sends one signed JSON event — batch ID, creation time, chat name, and the archive's local path — using Hermes' webhook signature scheme. The original ZIP stays durable in the shared inbox, and a failed delivery can be retried from the History pane. Chat content never leaves this Mac, and nothing is ever sent back to WeChat.
 
 ## History
 

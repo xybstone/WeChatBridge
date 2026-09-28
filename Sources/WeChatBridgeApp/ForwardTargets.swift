@@ -149,6 +149,7 @@ final class ForwardTargets: ObservableObject {
             ForwardDestination(action: .workBuddy, target: nil),
             ForwardDestination(action: .weSight, target: nil),
             ForwardDestination(action: .obsidian, target: nil),
+            ForwardDestination(action: .hermes, target: nil),
         ] + targets.map { ForwardDestination(action: .custom, target: $0) }
     }
 
