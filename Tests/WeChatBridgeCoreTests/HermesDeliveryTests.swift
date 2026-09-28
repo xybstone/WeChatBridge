@@ -176,7 +176,7 @@ private final class WebhookRecorder {
 
     private static let queue = DispatchQueue(label: "hermes-delivery-tests")
     private var serverFD: Int32 = -1
-    private var receivedBox = LockedBox<Received?>()
+    private var receivedBox = LockedBox<Received?>(nil)
     let url: URL
 
     init() throws {
